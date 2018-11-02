@@ -46,7 +46,7 @@ func GetDependencia(id int) (*Dependencia, error) {
 	sql := "SELECT * FROM CTL_DEPENDENCIAS WHERE id=?"
 	rows, err := Query(sql, id)
 	if err != nil {
-		return dependencia, err
+		return nil, err
 	}
 	for rows.Next() {
 		rows.Scan(&dependencia.ID, &dependencia.Nombre, &dependencia.NombreCorto, &dependencia.Correo, &dependencia.Direccion, &dependencia.Telefono)

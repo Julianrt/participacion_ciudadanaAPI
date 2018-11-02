@@ -35,7 +35,13 @@ func CreateConnection() {
 
 //CreateTables method
 func CreateTables() {
-	createTable("ciudad", ciudadScheme)
+	createTable("CTL_CIUDADES", ciudadScheme)
+	createTable("CTL_COLONIAS", coloniaScheme)
+	createTable("CTL_DEPENDENCIAS", dependenciaScheme)
+	createTable("CTL_STATUS", statusScheme)
+	createTable("PRO_VOTOS", votoScheme)
+	createTable("USR_USUARIOS", usuarioScheme)
+
 }
 
 func createTable(tableName, scheme string) {
