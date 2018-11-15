@@ -60,3 +60,7 @@ func VotosEndpoints(mux *mux.Router) {
 	mux.HandleFunc("/api/v1/votos/{id:[0-9]+}", handlers.UpdateVoto).Methods("PUT")
 	mux.HandleFunc("/api/v1/votos/{id:[0-9]+}", handlers.DeleteVoto).Methods("DELETE")
 }
+
+func LoginEndpoints(mux *mux.Router) {
+	mux.HandleFunc("/api/v1/login/", handlers.Login).Methods("POST")
+}

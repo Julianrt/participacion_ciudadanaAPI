@@ -26,4 +26,5 @@ func endpoints(mux *mux.Router) {
 	routers.UsuariosEndpoints(mux)
 	routers.ProblemasEndpoints(mux)
 	routers.VotosEndpoints(mux)
+	routers.LoginEndpoints(mux)
 }

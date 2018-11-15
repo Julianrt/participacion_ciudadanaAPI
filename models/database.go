@@ -39,9 +39,10 @@ func CreateTables() {
 	createTable("CTL_COLONIAS", coloniaScheme)
 	createTable("CTL_DEPENDENCIAS", dependenciaScheme)
 	createTable("CTL_STATUS", statusScheme)
+	createTable("PRO_PROBLEMAS", problemaScheme)
 	createTable("PRO_VOTOS", votoScheme)
 	createTable("USR_USUARIOS", usuarioScheme)
-
+	createTable("USR_LOGINS", loginScheme)
 }
 
 func createTable(tableName, scheme string) {

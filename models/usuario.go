@@ -2,7 +2,7 @@ package models
 
 //Usuario struct
 type Usuario struct {
-	ID            int64  `json:"usuario"`
+	ID            int64  `json:"id"`
 	Nombre        string `json:"nombre"`
 	Username      string `json:"username"`
 	Correo        string `json:"correo"`
@@ -59,6 +59,19 @@ func GetUsuario(id int) (*Usuario, error) {
 		rows.Scan(&usuario.ID, &usuario.Nombre, &usuario.Username, &usuario.Correo, &usuario.Pass, &usuario.Telefono, &usuario.IDColonia, &usuario.FechaRegistro)
 	}
 	return usuario, err
+}
+
+func GetUsuarioByUsername(username, pass string) (*Usuario, error) {
+	usuario := NewUsuario("", "", "", "", "", 0)
+	sql := "SELECT * FROM USR_USUARIOS WHERE username=? AND pass=?"
+	if rows, err := Query(sql, username, pass); err != nil {
+		return usuario, err
+	} else {
+		for rows.Next() {
+			rows.Scan(&usuario.ID, &usuario.Nombre, &usuario.Username, &usuario.Correo, &usuario.Pass, &usuario.Telefono, &usuario.IDColonia, &usuario.FechaRegistro)
+		}
+		return usuario, err
+	}
 }
 
 //GetUsuarios function
