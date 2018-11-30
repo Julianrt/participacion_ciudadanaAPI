@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"github.com/Julianrt/participacion_ciudadana/handlers"
+	"../handlers"
 	"github.com/gorilla/mux"
 )
 

@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Julianrt/participacion_ciudadana/models"
+	"../models"
 )
 
 //Login handler

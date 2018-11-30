@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Julianrt/participacion_ciudadana/routers"
+	"./routers"
 	"github.com/gorilla/mux"
 )
 

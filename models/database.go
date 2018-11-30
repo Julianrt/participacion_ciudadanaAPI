@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Julianrt/participacion_ciudadana/config"
+	"../config"
 	//driver mysql
 	_ "github.com/go-sql-driver/mysql"
 )

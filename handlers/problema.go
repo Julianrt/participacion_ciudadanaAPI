@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/Julianrt/participacion_ciudadana/models"
+	"../models"
 )
 
 //GetProblemas function

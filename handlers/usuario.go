@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Julianrt/participacion_ciudadana/models"
+	"../models"
 	"github.com/gorilla/mux"
 )
 
