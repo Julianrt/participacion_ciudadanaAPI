@@ -22,7 +22,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if u.ID == 0 {
-		log.Println("No existe el usuario")
+		models.SendNotFound(w)
 		return
 	}
 	token := models.GetToken(u.ID)
