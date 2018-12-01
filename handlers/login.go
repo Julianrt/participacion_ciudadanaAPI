@@ -10,28 +10,28 @@ import (
 
 //Login handler
 func Login(w http.ResponseWriter, r *http.Request) {
-	var usuario models.Usuario
+	var usuarioRequest models.Usuario
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&usuario); err != nil {
+	if err := decoder.Decode(&usuarioRequest); err != nil {
 		models.SendUnprocessableEntity(w)
 		return
 	}
-	u, err := models.GetUsuarioByUsername(usuario.Username, usuario.Pass)
+	usuario, err := models.LoginUsuario(usuarioRequest.Username, usuarioRequest.Pass)
 	if err != nil {
-		log.Println(err)
-		return
-	}
-	if u.ID == 0 {
 		models.SendNotFound(w)
 		return
 	}
-	token := models.GetToken(u.ID)
+	if usuario.ID == 0 {
+		models.SendNotFound(w)
+		return
+	}
+	token := models.GetToken(usuario.ID)
 	if token == "" {
-		token = models.CreateToken(u.ID)
+		token = models.CreateToken(usuario.ID)
 	}
 
 	if tokenResponse, err := models.GetTokenWithUser(token); err != nil {
-		log.Println(err)
+		log.Println(err.Error()+" 2 ")
 	} else {
 		models.SendData(w, tokenResponse)
 	}

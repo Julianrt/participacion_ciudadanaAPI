@@ -1,10 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
-	"log"
-	"net/http"
 	"strconv"
+	"net/http"
+	"encoding/json"
 
 	"../models"
 	"github.com/gorilla/mux"
@@ -12,6 +11,10 @@ import (
 
 //GetUsuarios method
 func GetUsuarios(w http.ResponseWriter, r *http.Request) {
+	if len(models.GetUsuarios()) == 0 {
+		models.SendNotFound(w)
+		return
+	}
 	models.SendData(w, models.GetUsuarios())
 }
 
@@ -20,10 +23,6 @@ func GetUsuario(w http.ResponseWriter, r *http.Request) {
 	if usuario, err := getUsuarioByRequest(r); err != nil {
 		models.SendNotFound(w)
 	} else {
-		if usuario.ID == 0 {
-			models.SendNotFound(w)
-			return
-		}
 		models.SendData(w, usuario)
 	}
 }
@@ -34,14 +33,22 @@ func CreateUsuario(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
 	if err := decoder.Decode(&usuario); err != nil {
-		log.Println(err)
 		models.SendUnprocessableEntity(w)
-	} else {
-		if err := usuario.Save(); err != nil {
-			models.SendUnprocessableEntity(w)
-		}
-		models.SendData(w, usuario)
+		return
+	} 
+
+	if err := usuario.Valid(); err != nil {
+		models.SendUnprocessableEntity(w)
+		return
 	}
+
+	usuario.SetPassword(usuario.Pass)
+	if err := usuario.Save(); err != nil {
+		models.SendUnprocessableEntity(w)
+		return
+	}
+
+	models.SendData(w, usuario)
 }
 
 //UpdateUsuario method
@@ -75,9 +82,10 @@ func DeleteUsuario(w http.ResponseWriter, r *http.Request) {
 func getUsuarioByRequest(r *http.Request) (*models.Usuario, error) {
 	vars := mux.Vars(r)
 	usuarioID, _ := strconv.Atoi(vars["id"])
-	usuario, err := models.GetUsuario(usuarioID)
-	if err != nil {
-		return usuario, err
+	usuario, _ := models.GetUsuarioByID(usuarioID)
+	
+	if usuario.ID == 0 {
+		return usuario, models.ErrorUsuarioNoEncontrado
 	}
-	return usuario, err
+	return usuario, nil
 }

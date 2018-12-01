@@ -20,8 +20,8 @@ var database *DatabaseConfig
 
 func init() {
 	database = &DatabaseConfig{}
-	database.Username = gonv.GetStringEnv("USERNAMEE", "root")
-	database.Password = gonv.GetStringEnv("PASSWORD", "coco")
+	database.Username = gonv.GetStringEnv("USERNAME", "root")
+	database.Password = gonv.GetStringEnv("PASSWORD", "")
 	database.Host = gonv.GetStringEnv("HOST", "localhost")
 	database.Port = gonv.GetIntEnv("PORT", 3306)
 	database.Database = gonv.GetStringEnv("DATABASE", "participacion_ciudadana")

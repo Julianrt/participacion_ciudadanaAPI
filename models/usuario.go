@@ -1,5 +1,11 @@
 package models
 
+import (
+	"time"
+	"regexp"
+	"golang.org/x/crypto/bcrypt"
+)
+
 //Usuario struct
 type Usuario struct {
 	ID            int64  `json:"id"`
@@ -9,15 +15,17 @@ type Usuario struct {
 	Pass          string `json:"pass"`
 	Telefono      string `json:"telefono"`
 	IDColonia     int64  `json:"id_colonia"`
-	FechaRegistro string `json:"fecha_registro"`
+	fechaRegistro time.Time
 }
+
+var emailRegexp = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 const usuarioScheme string = `CREATE TABLE USR_USUARIOS(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL,
     username VARCHAR(50) NOT NULL UNIQUE,
-    correo VARCHAR(100) NOT NULL,
-    pass VARCHAR(50) NOT NULL,
+    correo VARCHAR(100) NOT NULL UNIQUE,
+    pass VARCHAR(60) NOT NULL,
     telefono VARCHAR(20),
     id_colonia INT NOT NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`
@@ -26,7 +34,7 @@ const usuarioScheme string = `CREATE TABLE USR_USUARIOS(
 type Usuarios []Usuario
 
 //NewUsuario function
-func NewUsuario(nombre, username, correo, pass, telefono string, idColonia int64) *Usuario {
+func NewUsuario(nombre, username, correo, pass, telefono string, idColonia int64) (*Usuario, error) {
 	usuario := &Usuario{
 		Nombre:    nombre,
 		Username:  username,
@@ -35,56 +43,96 @@ func NewUsuario(nombre, username, correo, pass, telefono string, idColonia int64
 		Telefono:  telefono,
 		IDColonia: idColonia,
 	}
-	return usuario
+	if err := usuario.Valid(); err != nil {
+		return &Usuario{}, err
+	}
+	err := usuario.SetPassword(pass)
+	return usuario, err
 }
 
 //CreateUsuario function
 func CreateUsuario(nombre, username, correo, pass, telefono string, idColonia int64) (*Usuario, error) {
-	usuario := NewUsuario(nombre, username, correo, pass, telefono, idColonia)
-	if err := usuario.Save(); err != nil {
-		return usuario, err
-	}
-	return usuario, nil
-}
-
-//GetUsuario function
-func GetUsuario(id int) (*Usuario, error) {
-	usuario := NewUsuario("", "", "", "", "", 0)
-	sql := "SELECT * FROM USR_USUARIOS WHERE id=?"
-	rows, err := Query(sql, id)
+	usuario, err := NewUsuario(nombre, username, correo, pass, telefono, idColonia)
 	if err != nil {
-		return usuario, err
+		return &Usuario{}, err
 	}
-	for rows.Next() {
-		rows.Scan(&usuario.ID, &usuario.Nombre, &usuario.Username, &usuario.Correo, &usuario.Pass, &usuario.Telefono, &usuario.IDColonia, &usuario.FechaRegistro)
+	err = usuario.Save()
+	if err != nil && err.Error() == "Error 1062: Duplicate entry '"+usuario.Username+"' for key 'username'" {
+		err = errorUsernameExistente
 	}
 	return usuario, err
 }
 
-func GetUsuarioByUsername(username, pass string) (*Usuario, error) {
-	usuario := NewUsuario("", "", "", "", "", 0)
-	sql := "SELECT * FROM USR_USUARIOS WHERE username=? AND pass=?"
-	if rows, err := Query(sql, username, pass); err != nil {
-		return usuario, err
-	} else {
-		for rows.Next() {
-			rows.Scan(&usuario.ID, &usuario.Nombre, &usuario.Username, &usuario.Correo, &usuario.Pass, &usuario.Telefono, &usuario.IDColonia, &usuario.FechaRegistro)
-		}
-		return usuario, err
+//GetUsuario function
+func getUsuario(sql string, condicion interface{}) (*Usuario, error) {
+	usuario := &Usuario{}
+	rows, err := Query(sql, condicion)
+	for rows.Next() {
+		rows.Scan(&usuario.ID, &usuario.Nombre, &usuario.Username, &usuario.Correo, &usuario.Pass, &usuario.Telefono, &usuario.IDColonia)
 	}
+	return usuario, err
+}
+
+func GetUsuarioByID(id int) (*Usuario, error) {
+	sql := "SELECT id, nombre, username, correo, pass, telefono, id_colonia FROM USR_USUARIOS WHERE id=?"
+	return getUsuario(sql, id)
+}
+
+func GetUsuarioByUsername(username string) (*Usuario, error) {
+	sql := "SELECT id, nombre, username, correo, pass, telefono, id_colonia FROM USR_USUARIOS WHERE username=?"
+	return getUsuario(sql, username)
 }
 
 //GetUsuarios function
 func GetUsuarios() Usuarios {
 	var usuarios Usuarios
-	sql := "SELECT * FROM USR_USUARIOS"
+	sql := "SELECT id, nombre, username, correo, pass, telefono, id_colonia FROM USR_USUARIOS"
 	rows, _ := Query(sql)
 	for rows.Next() {
 		var usuario Usuario
-		rows.Scan(&usuario.ID, &usuario.Nombre, &usuario.Username, &usuario.Correo, &usuario.Pass, &usuario.Telefono, &usuario.IDColonia, &usuario.FechaRegistro)
+		rows.Scan(&usuario.ID, &usuario.Nombre, &usuario.Username, &usuario.Correo, &usuario.Pass, &usuario.Telefono, &usuario.IDColonia)
 		usuarios = append(usuarios, usuario)
 	}
 	return usuarios
+}
+
+func LoginUsuario(username, password string) (*Usuario, error) {
+	usuario,_ := GetUsuarioByUsername(username)
+	err := bcrypt.CompareHashAndPassword([]byte(usuario.Pass),[]byte(password))
+	if err != nil {
+		return &Usuario{}, errorLogin
+	}
+	return usuario, nil
+}
+
+func ValidEmail(email string) error {
+	if !emailRegexp.MatchString(email){
+		return errorFormatoCorreo
+	}
+	return nil
+}
+
+func ValidUsername(username string) error {
+	if username == "" {
+		return errorUsernameVacio
+	}
+	if len(username) < 5 {
+		return errorUsernameCorto
+	}
+	if len(username) > 30 {
+		return errorUsernameLargo
+	}
+	return nil
+}
+
+func (u *Usuario) Valid() error {
+	if err := ValidEmail(u.Correo); err != nil {
+		return err
+	}
+	if err := ValidUsername(u.Username); err != nil {
+		return err
+	}
+	return nil
 }
 
 //Save method
@@ -109,7 +157,21 @@ func (u *Usuario) update() error {
 }
 
 //Delete method
-func (u *Usuario) Delete() {
+func (u *Usuario) Delete() error {
 	sql := "DELETE FROM USR_USUARIOS WHERE id=?"
-	Exec(sql, u.ID)
+	_, err := Exec(sql, u.ID)
+	return err
+}
+
+func (u *Usuario) SetPassword(password string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return errorEncriptacionPassword
+	}
+	u.Pass = string(hash)
+	return nil
+}
+
+func (u *Usuario) GetFechaRegistro() time.Time {
+	return u.fechaRegistro
 }
