@@ -75,7 +75,11 @@ func getUsuario(sql string, condicion interface{}) (*Usuario, error) {
 
 func GetUsuarioByID(id int) (*Usuario, error) {
 	sql := "SELECT id, nombre, username, correo, pass, telefono, id_colonia FROM USR_USUARIOS WHERE id=?"
-	return getUsuario(sql, id)
+	usuario, err := getUsuario(sql, id)
+	if err == nil {
+		usuario.Pass = ""
+	}
+	return usuario, err
 }
 
 func GetUsuarioByUsername(username string) (*Usuario, error) {
@@ -86,11 +90,11 @@ func GetUsuarioByUsername(username string) (*Usuario, error) {
 //GetUsuarios function
 func GetUsuarios() Usuarios {
 	var usuarios Usuarios
-	sql := "SELECT id, nombre, username, correo, pass, telefono, id_colonia FROM USR_USUARIOS"
+	sql := "SELECT id, nombre, username, correo, telefono, id_colonia FROM USR_USUARIOS"
 	rows, _ := Query(sql)
 	for rows.Next() {
 		var usuario Usuario
-		rows.Scan(&usuario.ID, &usuario.Nombre, &usuario.Username, &usuario.Correo, &usuario.Pass, &usuario.Telefono, &usuario.IDColonia)
+		rows.Scan(&usuario.ID, &usuario.Nombre, &usuario.Username, &usuario.Correo, &usuario.Telefono, &usuario.IDColonia)
 		usuarios = append(usuarios, usuario)
 	}
 	return usuarios
