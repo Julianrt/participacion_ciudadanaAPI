@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"../models"
@@ -25,14 +24,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		models.SendNotFound(w)
 		return
 	}
-	token := models.GetToken(usuario.ID)
-	if token == "" {
-		token = models.CreateToken(usuario.ID)
+	uuid := models.GetUuidByUserID(usuario.ID)
+	if uuid == "" {
+		uuid = models.CreateUuid(usuario.ID)
 	}
 
-	if tokenResponse, err := models.GetTokenWithUser(token); err != nil {
-		log.Println(err.Error()+" 2 ")
-	} else {
-		models.SendData(w, tokenResponse)
-	}
+	tokenResponse := models.GetTokenWithUuid(uuid)
+	models.SendData(w, tokenResponse)
 }
