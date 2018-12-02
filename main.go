@@ -15,9 +15,9 @@ func main() {
 
 	routers.Endpoints(mux)
 
-	log.Println("El servidor está escuchando por el puerto :", config.ServerPort())
+	log.Println("El servidor está escuchando por el puerto "+config.ServerPortWithFormat())
 	server := http.Server{
-		Addr: 		config.URLServer(),
+		Addr: 		config.ServerPortWithFormat(),
 		Handler: 	mux,
 	}
 	log.Fatal(server.ListenAndServe())

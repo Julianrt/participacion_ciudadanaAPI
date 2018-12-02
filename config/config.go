@@ -59,12 +59,17 @@ func ServerPort() int {
 	return server.port
 }
 
+func ServerPortWithFormat () string {
+	//:port
+	return fmt.Sprintf(":%d", server.port)
+}
+
 func (d *DatabaseConfig) url() string {
 	//  username:password@tcp(localhost:3066)/database?charset=utf8
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8", d.Username, d.Password, d.Host, d.Port, d.Database)
 }
 
 func (server *ServerConfig) url() string {
-	//localhost:8080
+	//host:port
 	return fmt.Sprintf("%s:%d", server.host, server.port)
 }
